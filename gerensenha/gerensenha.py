@@ -1,8 +1,10 @@
+#!/usr/bin/env python3
+
 import clipboard as cb
 import pathlib
+import argparse
 
-
-def gerar_senha(tamanho: int, car_esp=False) -> str:
+def gerar_senha(tamanho: int, car_esp: bool = False) -> str:
     # Tenho que melhorar a parte de caracteres especiais (forçar a presença deles,
     # caso a flag esteja ativa). Uma ideia é dividir em 20% de caracteres especiais
     # e 80% para o resto.
@@ -25,7 +27,19 @@ def gerar_senha(tamanho: int, car_esp=False) -> str:
 
 
 def main():
-    print(gerar_senha(10, car_esp=True))
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-e", "--especiais", action="store_true", help="adiciona caracteres especiais")
+    parser.add_argument("-t", "--tamanho", type=int, default=10, help="tamanho da senha gerada")
+    parser.add_argument("-a", "--transferencia", action="store_true", help="manda a senha gerada para a área de transferência")
+
+    args = parser.parse_args()
+
+    senha = gerar_senha(args.tamanho, car_esp=args.especiais)
+
+    if args.transferencia:
+        cb.copy(senha)
+    else:
+        print(senha)
 
 
 if __name__ == "__main__":
