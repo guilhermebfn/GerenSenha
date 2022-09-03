@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 
 import clipboard as cb
 import pathlib
@@ -26,6 +27,7 @@ def gerar_senha(tamanho: int, car_esp: bool = False) -> str:
 
     return senha
 
+
 def gravar(conta: str, senha: str) -> None:
     # Função para atrelar uma senha a uma conta e gravar no bando de dados SQLite.
     # TODO: Ainda falta adicionar uma verificação se a conta passada já existe ou não.
@@ -34,18 +36,38 @@ def gravar(conta: str, senha: str) -> None:
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS senhas(
-            nome TEXT, 
+            conta TEXT, 
             senha TEXT
         )
     """)
 
     cur.execute("INSERT INTO senhas VALUES(?, ?)", (conta, senha))
     con.commit()
+    con.close()
+
+
+def listar():
+    # Lista as contas para as quais há senhas gravadas
+    # TODO: deixar o resultado mais bonito
+
+    if not pathlib.Path("senhas.db").is_file():
+        print("Não há senhas gravadas")
+        sys.exit(1)
+
+    con = sqlite3.connect("senhas.db")
+    cur = con.cursor()
+
+    res = cur.execute("SELECT conta FROM senhas")
+    contas = res.fetchall()
+    print(contas)
+
+    con.close()
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--especiais", action="store_true", help="adiciona caracteres especiais")
     parser.add_argument("-t", "--tamanho", type=int, default=10, help="tamanho da senha gerada")
+    parser.add_argument("-l", "--listar", action="store_true", help="lista as senhas guardadas no bando de dados")
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-s", "--salvar", help="grava a senha no banco de dados")
@@ -58,6 +80,8 @@ def main():
 
     if args.transferencia:
         cb.copy(senha)
+    elif args.listar:
+        listar()
     elif conta := args.salvar:
         gravar(conta, senha)
     else:
