@@ -59,7 +59,11 @@ def listar():
 
     res = cur.execute("SELECT conta FROM senhas")
     contas = res.fetchall()
-    print(contas)
+
+    if len(contas) == 0:
+        print("Não há senhas guardadas")
+    else:
+        print(contas)
 
     con.close()
 
@@ -76,6 +80,7 @@ def apagar(conta):
 
     cur.execute("DELETE FROM senhas WHERE conta = ?", (conta,))
     con.commit()
+    con.close()
 
 
 def main():
