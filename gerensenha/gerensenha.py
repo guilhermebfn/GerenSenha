@@ -63,16 +63,32 @@ def listar():
 
     con.close()
 
+
+def apagar(conta):
+    # Apaga a senha da conta passada do banco de dados
+
+    if not pathlib.Path("senhas.db").is_file():
+        print("Não há senhas gravadas")
+        sys.exit(1)
+
+    con = sqlite3.connect("senhas.db")
+    cur = con.cursor()
+
+    cur.execute("DELETE FROM senhas WHERE conta = ?", (conta,))
+    con.commit()
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--especiais", action="store_true", help="adiciona caracteres especiais")
     parser.add_argument("-t", "--tamanho", type=int, default=10, help="tamanho da senha gerada")
-    parser.add_argument("-l", "--listar", action="store_true", help="lista as senhas guardadas no bando de dados")
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-s", "--salvar", help="grava a senha no banco de dados")
     group.add_argument("-a", "--transferencia", action="store_true",
                         help="manda a senha gerada para a área de transferência")
+    group.add_argument("-d", "--deletar", help="apaga a senha associada à conta passada")
+    group.add_argument("-l", "--listar", action="store_true", help="lista as senhas guardadas no bando de dados")
 
     args = parser.parse_args()
 
@@ -82,6 +98,8 @@ def main():
         cb.copy(senha)
     elif args.listar:
         listar()
+    elif conta := args.deletar:
+        apagar(conta)
     elif conta := args.salvar:
         gravar(conta, senha)
     else:
